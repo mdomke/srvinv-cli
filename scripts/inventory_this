@@ -52,6 +52,7 @@ os = platform.system()
 os_version = platform.release()
 os_arch = platform.machine()
 
+print 'Inventory srvid: ' + srvid
 # try to register the srvid
 print 'Register: ' + str(libsrvinv.register('srv', srvid))
 # set values
