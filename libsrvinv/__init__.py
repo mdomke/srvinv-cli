@@ -28,12 +28,18 @@ def get(resource, resourceid, attribute):
     print 'error communicating with srvinv daemon'
     return False
 
-def set(resource, resourceid, attribute, value):
+def set(resource, resourceid, attribute, value, use_json=True):
   apirequest = requests.get(api_url + resource + 's/' + resourceid)
   if apirequest.status_code == 200:
       # validate if value is json so we dont put it in there as string
-      if helpers.is_json(value):
+      try:
         value = json.loads(value)
+      except TypeError:
+        # is pyobj, like list or tuple
+        pass
+      except ValueError:
+        # is unparseable string
+        pass
       to_set_value = json.dumps({"value": value})
       apirequest = requests.patch(api_url + resource + 's/' + resourceid + '/' + attribute, data=to_set_value)
       if apirequest.status_code == 202:
@@ -69,27 +75,25 @@ def delete(resource, resourceid):
     print 'error communicating with srvinv daemon'
     return False
 
-def search(resource, attribute, value):
+def search(resource, attribute, value, use_json=True):
   found_resources = []
+  cache_as_obj = []
   cache_file_path = config.cache_path + resource + '.json'
 
   if (os.path.isfile(cache_file_path)) and (os.path.getmtime(cache_file_path) > (time.time() - config.cache_duration_in_s)):
-    cache_file = open(cache_file_path, 'r')
-    cache = cache_file.read()
-    cache_file.close
+    with open(cache_file_path) as fp:
+      cache_as_obj = json.load(fp)
   else:
     apirequest = requests.get(api_url + resource + 's')
     if apirequest.status_code == 200:
-      cache = apirequest.text
-      cache_file = open(cache_file_path, 'w')
-      cache_file.write(cache)
-      cache_file.close
-      os.chmod(cache_file_path, 0766)
+      cache_as_obj = json.loads(apirequest.text)
+      with open(cache_file_path, 'w') as fp:
+        json.dump(cache_as_obj, fp)
+        os.chmod(cache_file_path, 0766)
     else:
       print 'error communicating with srvinv daemon'
       return False
 
-  cache_as_obj = json.loads(cache)
   for resource_to_search in cache_as_obj:
     # we need to make sure to convert arrays to strings so we can fnmatch them
     if attribute in resource_to_search.keys():
@@ -99,5 +103,6 @@ def search(resource, attribute, value):
          attribute_to_search = resource_to_search[attribute]
       if fnmatch.fnmatch(str(attribute_to_search), value):
         found_resources.append(resource_to_search)
-
-  return json.dumps(found_resources)
+  if use_json:
+    return json.dumps(found_resources)
+  return found_resources
