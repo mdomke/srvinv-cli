@@ -44,10 +44,10 @@ if __name__ == "__main__":
 
     elif args.verb == 'set':
       if args.attribute == None:
-        print 'missing attribute'
+        print('missing attribute')
       else:
         if args.value == None:
-          print 'missing value'
+          print('missing value')
         else:
           result = libsrvinv.set(args.resource, args.resourceid, args.attribute, args.value)
 
@@ -60,4 +60,4 @@ if __name__ == "__main__":
     if not result:
       exit(1)
     else:
-      print result
+      print(result)

@@ -2,14 +2,21 @@
 libsrvinv - the main library serving default methods for srvinv clients
 '''
 
-import config
-import helpers
+from . import config
+from . import helpers
 import requests
 import json
 import os
 import fnmatch
 import time
 from datetime import datetime
+
+#<py2-compat>
+try:
+  unicode
+except NameError
+  unicode = str
+#</py2-compat>
 
 api_url = config.master_url + config.api_version + '/'
 
@@ -22,10 +29,10 @@ def get(resource, resourceid, attribute):
       resource_as_obj = json.loads(apirequest.text)
       return json.dumps(resource_as_obj[attribute])
   elif apirequest.status_code == 404:
-    print 'resource not found'
+    print('resource not found')
     return False
   elif apirequest.status_code == 500:
-    print 'error communicating with srvinv daemon'
+    print('error communicating with srvinv daemon')
     return False
 
 def set(resource, resourceid, attribute, value, use_json=True):
@@ -45,13 +52,13 @@ def set(resource, resourceid, attribute, value, use_json=True):
       if apirequest.status_code == 202:
         return to_set_value
       else:
-        print 'error communicating with srvinv daemon'
+        print('error communicating with srvinv daemon')
         return False
   elif apirequest.status_code == 404:
-    print 'resource not found'
+    print('resource not found')
     return False
   elif apirequest.status_code == 500:
-    print 'error communicating with srvinv daemon'
+    print('error communicating with srvinv daemon')
     return False
 
 def register(resource, resourceid):
@@ -61,10 +68,10 @@ def register(resource, resourceid):
   if apirequest.status_code == 201:
     return to_register_resource
   elif apirequest.status_code == 409:
-    print 'conflict: already registered'
+    print('conflict: already registered')
     return False
   else:
-    print 'error communicating with srvinv daemon'
+    print('error communicating with srvinv daemon')
     return False
 
 def delete(resource, resourceid):
@@ -72,7 +79,7 @@ def delete(resource, resourceid):
   if apirequest.status_code == 202:
     return 'deleted ' + resource + ': ' + resourceid
   else:
-    print 'error communicating with srvinv daemon'
+    print('error communicating with srvinv daemon')
     return False
 
 def search(resource, attribute, value, use_json=True):
@@ -89,14 +96,14 @@ def search(resource, attribute, value, use_json=True):
       cache_as_obj = json.loads(apirequest.text)
       with open(cache_file_path, 'w') as fp:
         json.dump(cache_as_obj, fp)
-        os.chmod(cache_file_path, 0766)
+        os.chmod(cache_file_path, 0o766)
     else:
-      print 'error communicating with srvinv daemon'
+      print('error communicating with srvinv daemon')
       return False
 
   for resource_to_search in cache_as_obj:
     # we need to make sure to convert arrays to strings so we can fnmatch them
-    if attribute in resource_to_search.keys():
+    if attribute in resource_to_search:
       if isinstance(resource_to_search[attribute], list):
          attribute_to_search = json.dumps(resource_to_search[attribute])
       else:

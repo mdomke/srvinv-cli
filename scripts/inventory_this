@@ -45,24 +45,27 @@ for net in networks:
                 break
 interfaces_to_inv = json.dumps(interfaces_to_inv)
 
-octets = string.split(priv_ip, '.')
+if not priv_ip:
+  print('Failed to match local IPs against registered networks')
+  sys.exit(1)
+octets = priv_ip.split('.')
 srvid = 'srv' + octets[2].zfill(3) + octets[3].zfill(3)
 
 os = platform.system()
 os_version = platform.release()
 os_arch = platform.machine()
 
-print 'Inventory srvid: ' + srvid
+print('Inventory srvid: ' + srvid)
 # try to register the srvid
-print 'Register: ' + str(libsrvinv.register('srv', srvid))
+print('Register: ' + str(libsrvinv.register('srv', srvid)))
 # set values
-if net_id: print 'net_id: ' + libsrvinv.set('srv', srvid, 'net_id', net_id)
-print 'CPU cores: ' + libsrvinv.set('srv', srvid, 'cpu_cores', cpu_cores)
-print 'RAM size mb: ' + libsrvinv.set('srv', srvid, 'ram_size_mb', ram_size_mb)
-print 'disk size gb: ' + libsrvinv.set('srv', srvid, 'disk_size_gb', disk_size_gb)
-print 'interfaces: ' + libsrvinv.set('srv', srvid, 'interfaces', interfaces_to_inv)
-print 'os: ' + libsrvinv.set('srv', srvid, 'os', os)
-print 'os version: ' + libsrvinv.set('srv', srvid, 'os_version', os_version)
-print 'os arch: ' + libsrvinv.set('srv', srvid, 'os_arch', os_arch)
-print 'priv ip: ' + libsrvinv.set('srv', srvid, 'priv_ip', priv_ip)
-print 'priv interface: ' + libsrvinv.set('srv', srvid, 'priv_interface', priv_interface)
+if net_id: print('net_id: ' + libsrvinv.set('srv', srvid, 'net_id', net_id))
+print('CPU cores: ' + libsrvinv.set('srv', srvid, 'cpu_cores', cpu_cores))
+print('RAM size mb: ' + libsrvinv.set('srv', srvid, 'ram_size_mb', ram_size_mb))
+print('disk size gb: ' + libsrvinv.set('srv', srvid, 'disk_size_gb', disk_size_gb))
+print('interfaces: ' + libsrvinv.set('srv', srvid, 'interfaces', interfaces_to_inv))
+print('os: ' + libsrvinv.set('srv', srvid, 'os', os))
+print('os version: ' + libsrvinv.set('srv', srvid, 'os_version', os_version))
+print('os arch: ' + libsrvinv.set('srv', srvid, 'os_arch', os_arch))
+print('priv ip: ' + libsrvinv.set('srv', srvid, 'priv_ip', priv_ip))
+print('priv interface: ' + libsrvinv.set('srv', srvid, 'priv_interface', priv_interface))

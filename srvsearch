@@ -31,4 +31,4 @@ if __name__ == "__main__":
     if not result:
       exit(1)
     else:
-      print result
+      print(result)
