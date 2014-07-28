@@ -14,7 +14,7 @@ from datetime import datetime
 #<py2-compat>
 try:
   unicode
-except NameError
+except NameError:
   unicode = str
 #</py2-compat>
 
