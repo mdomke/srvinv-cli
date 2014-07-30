@@ -27,6 +27,9 @@ def get(resource, resourceid, attribute):
       return apirequest.text
     else:
       resource_as_obj = json.loads(apirequest.text)
+      if not attribute in resource_as_obj:
+        print('attribute not set')
+        return False
       return json.dumps(resource_as_obj[attribute])
   elif apirequest.status_code == 404:
     print('resource not found')
