@@ -11,13 +11,6 @@ import fnmatch
 import time
 from datetime import datetime
 
-#<py2-compat>
-try:
-  unicode
-except NameError:
-  unicode = str
-#</py2-compat>
-
 api_url = config.master_url + config.api_version + '/'
 
 def get(resource, resourceid, attribute):
@@ -65,7 +58,7 @@ def set(resource, resourceid, attribute, value, use_json=True):
     return False
 
 def register(resource, resourceid):
-  to_register_resource = {"name": resourceid, "created_at": unicode(datetime.utcnow()), "updated_at": unicode(datetime.utcnow())}
+  to_register_resource = {"name": resourceid, "created_at": datetime.utcnow().isoformat(), "updated_at": datetime.utcnow().isoformat()}
   to_register_resource = json.dumps(to_register_resource)
   apirequest = requests.post(api_url + resource + 's', data=to_register_resource)
   if apirequest.status_code == 201:
