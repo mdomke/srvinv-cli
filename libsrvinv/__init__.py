@@ -62,7 +62,6 @@ def set(resource, resourceid, attribute, value, use_json=True):
         # is unparseable string
         pass
       to_set_value = json.dumps({"value": value})
-      s_rest = resourceid + '/' + attribute
       apirequest = request_srvinv('patch', resource, resourceid, attribute, data=to_set_value)
       if apirequest.status_code == 202:
         return to_set_value
