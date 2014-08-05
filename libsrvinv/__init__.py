@@ -11,17 +11,28 @@ import fnmatch
 import time
 from datetime import datetime
 
-#<py2-compat>
-try:
-  unicode
-except NameError:
-  unicode = str
-#</py2-compat>
-
 api_url = config.master_url + config.api_version + '/'
 
+session = requests.Session()
+
+def request_srvinv(rtype, resource, resourceid=None, attribute=None, data=None):
+  if not resource.endswith('s'):
+    resource += 's'
+  s_url = api_url + resource
+  if resourceid:
+    s_url += '/' + resourceid
+  if attribute:
+    s_url += '/' + attribute
+  try:
+    apirequest = session.request(rtype, s_url, data=data)
+  except requests.exceptions.ConnectionError:
+    apirequest = object()
+    apirequest.text = ''
+    apirequest.status_code = -1
+  return apirequest
+
 def get(resource, resourceid, attribute):
-  apirequest = requests.get(api_url + resource + 's/' + resourceid)
+  apirequest = request_srvinv('get', resource, resourceid)
   if apirequest.status_code == 200:
     if not attribute:
       return apirequest.text
@@ -39,7 +50,7 @@ def get(resource, resourceid, attribute):
     return False
 
 def set(resource, resourceid, attribute, value, use_json=True):
-  apirequest = requests.get(api_url + resource + 's/' + resourceid)
+  apirequest = request_srvinv('get', resource, resourceid)
   if apirequest.status_code == 200:
       # validate if value is json so we dont put it in there as string
       try:
@@ -51,7 +62,7 @@ def set(resource, resourceid, attribute, value, use_json=True):
         # is unparseable string
         pass
       to_set_value = json.dumps({"value": value})
-      apirequest = requests.patch(api_url + resource + 's/' + resourceid + '/' + attribute, data=to_set_value)
+      apirequest = request_srvinv('patch', resource, resourceid, attribute, data=to_set_value)
       if apirequest.status_code == 202:
         return to_set_value
       else:
@@ -65,9 +76,9 @@ def set(resource, resourceid, attribute, value, use_json=True):
     return False
 
 def register(resource, resourceid):
-  to_register_resource = {"name": resourceid, "created_at": unicode(datetime.utcnow()), "updated_at": unicode(datetime.utcnow())}
+  to_register_resource = {"name": resourceid, "created_at": datetime.utcnow().isoformat(), "updated_at": datetime.utcnow().isoformat()}
   to_register_resource = json.dumps(to_register_resource)
-  apirequest = requests.post(api_url + resource + 's', data=to_register_resource)
+  apirequest = request_srvinv('post', resource, data=to_register_resource)
   if apirequest.status_code == 201:
     return to_register_resource
   elif apirequest.status_code == 409:
@@ -78,7 +89,7 @@ def register(resource, resourceid):
     return False
 
 def delete(resource, resourceid):
-  apirequest = requests.delete(api_url + resource + 's/' + resourceid)
+  apirequest = request_srvinv('delete', resource, resourceid)
   if apirequest.status_code == 202:
     return 'deleted ' + resource + ': ' + resourceid
   else:
@@ -94,7 +105,7 @@ def search(resource, attribute, value, use_json=True):
     with open(cache_file_path) as fp:
       cache_as_obj = json.load(fp)
   else:
-    apirequest = requests.get(api_url + resource + 's')
+    apirequest = request_srvinv('get', resource)
     if apirequest.status_code == 200:
       cache_as_obj = json.loads(apirequest.text)
       with open(cache_file_path, 'w') as fp:
