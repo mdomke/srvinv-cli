@@ -42,7 +42,7 @@ def get(resource, resourceid, attribute):
   1 if the resource does not exist
   2 if the attribute does not exist
   3 on error"""
-  (i_status_code, s_reply) = request_srvinv('get', resource, resourceid)
+  (i_status_code, s_reply) = _request_srvinv('get', resource, resourceid)
   if i_status_code == 200:
     if not attribute:
       return (0, s_reply)
@@ -61,7 +61,7 @@ def set(resource, resourceid, attribute, value, use_json=True):
   """sets a attribut of a existing object
   return 0 on succes, 1/2 if first/second connections fails
   and 3 is the object does not exist"""
-  (i_status_code, s_reply) = request_srvinv('get', resource, resourceid)
+  (i_status_code, s_reply) = _request_srvinv('get', resource, resourceid)
   if i_status_code == 200:
       # validate if value is json so we dont put it in there as string
       try:
@@ -73,7 +73,7 @@ def set(resource, resourceid, attribute, value, use_json=True):
         # is unparseable string
         pass
       to_set_value = json.dumps({"value": value})
-      (i_status_code, s_reply) = request_srvinv('patch', resource, resourceid, attribute, data=to_set_value)
+      (i_status_code, s_reply) = _request_srvinv('patch', resource, resourceid, attribute, data=to_set_value)
       if i_status_code == 202:
         return 0
       else:
@@ -88,7 +88,7 @@ def register(resource, resourceid):
   retuns 0 on success, 1 if the name exists and 2 on error"""
   to_register_resource = {"name": resourceid, "created_at": datetime.utcnow().isoformat(), "updated_at": datetime.utcnow().isoformat()}
   to_register_resource = json.dumps(to_register_resource)
-  (i_status_code, s_reply) = request_srvinv('post', resource, data=to_register_resource)
+  (i_status_code, s_reply) = _request_srvinv('post', resource, data=to_register_resource)
   if i_status_code == 201:
     return 0
   elif i_status_code == 409:
@@ -100,7 +100,7 @@ def register(resource, resourceid):
 def delete(resource, resourceid):
   """deletes the given resource-name in the given resource
   returns 0 on success and 1 on errror"""
-  (i_status_code, s_reply) = request_srvinv('delete', resource, resourceid)
+  (i_status_code, s_reply) = _request_srvinv('delete', resource, resourceid)
   if i_status_code == 202:
     return 0
   else:
@@ -120,7 +120,7 @@ def search(resource, attribute, value, use_json=True):
     with open(cache_file_path) as fp:
       cache_as_obj = json.load(fp)
   else:
-    (i_status_code, s_reply) = request_srvinv('get', resource)
+    (i_status_code, s_reply) = _request_srvinv('get', resource)
     if i_status_code == 200:
       cache_as_obj = json.loads(s_reply)
       with open(cache_file_path, 'w') as fp:
