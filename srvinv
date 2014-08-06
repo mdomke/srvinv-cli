@@ -40,7 +40,17 @@ if __name__ == "__main__":
     result = ''
 
     if args.verb == 'get':
-      result = libsrvinv.get(args.resource, args.resourceid, args.attribute)
+      (i_ret, s_text) = libsrvinv.get(args.resource, args.resourceid, args.attribute)
+      if i_ret == 0:
+        print(s_text)
+      elif i_ret == 1:
+        print('resource not found')
+      elif i_ret == 2:
+        print('attribute not set')
+      elif i_ret == 3:
+        print('error communicating with srvinv daemon')
+      else:
+        print('unknown error {}'.format(i_ret))
 
     elif args.verb == 'set':
       if args.attribute == None:
@@ -49,15 +59,30 @@ if __name__ == "__main__":
         if args.value == None:
           print('missing value')
         else:
-          result = libsrvinv.set(args.resource, args.resourceid, args.attribute, args.value)
+          i_ret = libsrvinv.set(args.resource, args.resourceid, args.attribute, args.value)
+          if i_ret == 0:
+            pass
+          elif i_ret in (1, 2):
+            print('error communicating with srvinv daemon')
+          elif i_ret == 3:
+            print('resource not found')
+          else:
+            print('unknown error {}'.format(i_ret))
 
     elif args.verb == 'register':
-      result = libsrvinv.register(args.resource, args.resourceid)
+      i_ret = libsrvinv.register(args.resource, args.resourceid)
+      if i_ret == 1:
+        print('conflict: already registered')
+      elif i_ret == 2:
+        print('error communicating with srvinv daemon')
+      elif i_ret != 0:
+        print('error failed with error-code {}'.format(i_ret))
 
     elif args.verb == 'delete':
-      result = libsrvinv.delete(args.resource, args.resourceid)
+      i_ret = libsrvinv.delete(args.resource, args.resourceid)
+      if i_ret != 0:
+        print('error communicating with srvinv daemon')
 
-    if not result:
-      exit(1)
-    else:
-      print(result)
+    exit(result)
+
+#[EOF]

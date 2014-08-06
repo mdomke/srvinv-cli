@@ -28,7 +28,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     result = libsrvinv.search(args.resource, args.attribute, args.value)
-    if not result:
+    if result == False:
+      print('error communicating with srvinv daemon')
       exit(1)
     else:
       print(result)
