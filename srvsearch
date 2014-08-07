@@ -8,6 +8,7 @@ srvsearch srv deployed_with "docker": returns a json array of srvids that are de
 '''
 
 import argparse
+import json
 import libsrvinv
 
 if __name__ == "__main__":
@@ -27,9 +28,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    result = libsrvinv.search(args.resource, args.attribute, args.value)
-    if result == False:
+    x_result = libsrvinv.search(args.resource, args.attribute, args.value)
+    if x_result == False:
       print('error communicating with srvinv daemon')
       exit(1)
     else:
-      print(result)
+      print(json.dumps(x_result))

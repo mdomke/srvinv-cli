@@ -11,6 +11,7 @@ srvinv delete srv srvid: will remove a srvid from inventory
 '''
 
 import argparse
+import json
 import libsrvinv
 
 if __name__ == "__main__":
@@ -37,12 +38,12 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    result = ''
+    i_ret = 0
 
     if args.verb == 'get':
-      (i_ret, s_text) = libsrvinv.get(args.resource, args.resourceid, args.attribute)
+      (i_ret, x_text) = libsrvinv.get(args.resource, args.resourceid, args.attribute)
       if i_ret == 0:
-        print(s_text)
+        print(json.dumps(x_text))
       elif i_ret == 1:
         print('resource not found')
       elif i_ret == 2:
@@ -83,6 +84,6 @@ if __name__ == "__main__":
       if i_ret != 0:
         print('error communicating with srvinv daemon')
 
-    exit(result)
+    exit(i_ret)
 
 #[EOF]
