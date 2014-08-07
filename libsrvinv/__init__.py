@@ -15,6 +15,56 @@ api_url = config.master_url + config.api_version + '/'
 
 session = requests.Session()
 
+class SrvinvCache:
+  def __init__(self, b_cache_use_file=None):
+    self.d_cache = {}
+    self.d_times = {}
+    self.b_cache_use_file = b_cache_use_file if b_cache_use_file != None else config.cache_use_file
+    self.s_cache_path_tmpl = config.cache_path_tmpl
+    self.i_cache_duration_in_s = config.cache_duration_in_s
+    return
+  # end def __init__
+
+  def get(self, s_resource, b_force=False):
+    if (not b_force and
+        s_resource in self.d_times and
+        (time.time() <= self.d_times[s_resource])):
+      if self.b_cache_use_file:
+        s_cache_file_path = self.s_cache_path_tmpl.format(s_resource)
+        if os.path.isfile(s_cache_file_path):
+          with open(s_cache_file_path) as fp:
+            return json.load(fp)
+      else:
+        return self.d_cache[s_resource]
+    else:
+      self.d_times[s_resource] = time.time() + self.i_cache_duration_in_s
+      if self.b_cache_use_file:
+        s_json_reply = self.fetch(s_resource, b_as_json=True)
+        with open(s_cache_file_path, 'w') as fp:
+          fp.write(s_json_reply)
+          os.chmod(s_cache_file_path, 0o766)
+          return json.loads(s_json_reply)
+      else:
+        x_reply = self.fetch(s_resource, b_as_json=False)
+        self.d_cache[s_resource] = x_reply
+        return x_reply
+    return None
+  # end def get
+
+  def fetch(self, s_resource, b_as_json):
+    (i_status_code, s_reply) = _request_srvinv('get', s_resource)
+    if i_status_code == 200:
+      if b_as_json:
+        return s_reply
+      else:
+        return json.loads(s_reply)
+    else:
+      return None
+  # end def fetch
+# end class Db
+
+go_srvinv_cache = SrvinvCache()
+
 def _request_srvinv(rtype, resource, resourceid=None, attribute=None, data=None):
   """builds a url and sends a requests to srvinv
   returns a tuple of http-status-code and text-reply
@@ -113,21 +163,8 @@ def search(resource, attribute, value, use_json=True):
   use_json: return a py-list if set to False, else return a json-string
   returns a list of object dictionaries"""
   found_resources = []
-  cache_as_obj = []
-  cache_file_path = config.cache_path + resource + '.json'
 
-  if (os.path.isfile(cache_file_path)) and (os.path.getmtime(cache_file_path) > (time.time() - config.cache_duration_in_s)):
-    with open(cache_file_path) as fp:
-      cache_as_obj = json.load(fp)
-  else:
-    (i_status_code, s_reply) = _request_srvinv('get', resource)
-    if i_status_code == 200:
-      cache_as_obj = json.loads(s_reply)
-      with open(cache_file_path, 'w') as fp:
-        json.dump(cache_as_obj, fp)
-        os.chmod(cache_file_path, 0o766)
-    else:
-      return False
+  cache_as_obj = go_srvinv_cache.get(resource)
 
   for resource_to_search in cache_as_obj:
     # we need to make sure to convert arrays to strings so we can fnmatch them
