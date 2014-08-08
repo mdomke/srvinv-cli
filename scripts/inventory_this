@@ -30,20 +30,23 @@ networks = libsrvinv.search('net', 'name', '*')
 
 priv_ip = ''
 priv_interface = ''
-for net in networks:
-  if 'netmask' in net:
-    for interface in interfaces:
-      if not interface == 'lo':
-        addrs = netifaces.ifaddresses(interface)
-        if netifaces.AF_INET in addrs:
-          ips = addrs[netifaces.AF_INET]
-          for ip in ips:
-            if not ip['addr'] == '127.0.0.1':
-              if IPAddress(str(ip['addr'])) in IPNetwork(net['netmask']):
-                priv_ip = str(ip['addr'])
-                priv_interface = interface
-                net_id = net['name']
-                break
+for interface in interfaces:
+  if interface == 'lo':
+    continue
+  addrs = netifaces.ifaddresses(interface)
+  if not netifaces.AF_INET in addrs:
+    continue
+  ips = addrs[netifaces.AF_INET]
+  for ip in ips:
+    if ip['addr'] == '127.0.0.1':
+      continue
+    for net in networks:
+      if (('netmask' in net) and
+          (IPAddress(str(ip['addr'])) in IPNetwork(net['netmask']))):
+        priv_ip = str(ip['addr'])
+        priv_interface = interface
+        net_id = net['name']
+        break
 interfaces_to_inv = json.dumps(interfaces_to_inv)
 
 if not priv_ip:
