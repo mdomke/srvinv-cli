@@ -18,40 +18,67 @@ session = requests.Session()
 class SrvinvCache:
   def __init__(self, b_cache_use_file=None):
     self.d_cache = {}
-    self.d_times = {}
+    self.df_times = {}
     self.b_cache_use_file = b_cache_use_file if b_cache_use_file != None else config.cache_use_file
     self.s_cache_path_tmpl = config.cache_path_tmpl
     self.i_cache_duration_in_s = config.cache_duration_in_s
     return
   # end def __init__
 
-  def get(self, s_resource, b_force=False):
-    if (not b_force and
-        s_resource in self.d_times and
-        (time.time() <= self.d_times[s_resource])):
-      if self.b_cache_use_file:
-        s_cache_file_path = self.s_cache_path_tmpl.format(s_resource)
-        if os.path.isfile(s_cache_file_path):
-          with open(s_cache_file_path) as fp:
-            return json.load(fp)
-      else:
-        return self.d_cache[s_resource]
+  def get(self, s_resource, b_force_update=False, b_cache_use_file=None):
+    """retrive a given resource from srvinv and cache it in a dictionary or file
+    s_resource: srv, net or env
+    b_force_update: retrive even if cache duration is not reached
+    b_cache_use_file: select if caching to file or to py-dict"""
+    if b_cache_use_file == None:
+      b_cache_use_file = self.b_cache_use_file
+    if b_cache_use_file:
+      return self._file_get(s_resource, b_force_update)
     else:
-      self.d_times[s_resource] = time.time() + self.i_cache_duration_in_s
-      if self.b_cache_use_file:
-        s_json_reply = self.fetch(s_resource)
-        with open(s_cache_file_path, 'w') as fp:
-          fp.write(s_json_reply)
-          os.chmod(s_cache_file_path, 0o766)
-          return json.loads(s_json_reply)
-      else:
-        x_reply = self.fetch(s_resource)
-        self.d_cache[s_resource] = x_reply
-        return x_reply
-    return None
+      return self._dict_get(s_resource, b_force_update)
   # end def get
 
+  def _file_get(self, s_resource, b_force_update=False):
+    """retrive resource from srvinv and cache it to file"""
+    s_cache_file_path = self.s_cache_path_tmpl.format(s_resource)
+    if b_force_update or not os.path.isfile(s_cache_file_path):
+      b_do_update = True
+    else:
+      f_cache_time = os.path.getmtime(s_cache_file_path)
+      b_do_update = (time.time() > (f_cache_time + self.i_cache_duration_in_s))
+    if b_do_update:
+      x_reply = self.fetch(s_resource)
+      with open(s_cache_file_path, 'w') as fp:
+        json.dump(x_reply, fp)
+        os.chmod(s_cache_file_path, 0o766)
+        return x_reply
+    else:
+      with open(s_cache_file_path) as fp:
+        return json.load(fp)
+    return None
+  # end def _file_get
+
+  def _dict_get(self, s_resource, b_force_update=False):
+    """retrive resource from srvinv and cache it to py-dict"""
+    f_cur_utime = time.time()
+    if b_force_update or not s_resource in self.df_times:
+      b_do_update = True
+    else:
+      s_cache_file_path = self.s_cache_path_tmpl.format(s_resource)
+      f_cache_time = self.df_times[s_resource]
+      b_do_update = (f_cur_utime > f_cache_time)
+    if b_do_update:
+      self.df_times[s_resource] = f_cur_utime + self.i_cache_duration_in_s
+      x_reply = self.fetch(s_resource)
+      self.d_cache[s_resource] = x_reply
+      return x_reply
+    else:
+      return self.d_cache[s_resource]
+    return None
+# end def _dict_get
+
   def fetch(self, s_resource):
+    """only return data if srvinv sends status-code 200 on 'get'"""
     (i_status_code, x_reply) = _request_srvinv('get', s_resource)
     if i_status_code == 200:
       return x_reply
@@ -167,6 +194,8 @@ def search(resource, attribute, value):
   found_resources = []
 
   cache_as_obj = go_srvinv_cache.get(resource)
+  if cache_as_obj == None:
+    return None
 
   for resource_to_search in cache_as_obj:
     # we need to make sure to convert arrays to strings so we can fnmatch them
