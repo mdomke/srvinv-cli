@@ -31,7 +31,7 @@ networks = libsrvinv.search('net', 'name', '*')
 priv_ip = ''
 priv_interface = ''
 for interface in interfaces:
-  if interface == 'lo':
+  if interface.startswith('lo'):
     continue
   addrs = netifaces.ifaddresses(interface)
   if not netifaces.AF_INET in addrs:
