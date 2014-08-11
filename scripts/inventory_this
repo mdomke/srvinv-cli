@@ -30,27 +30,30 @@ networks = libsrvinv.search('net', 'name', '*')
 
 priv_ip = ''
 priv_interface = ''
-for net in networks:
-  if 'netmask' in net:
-    for interface in interfaces:
-      if not interface == 'lo':
-        addrs = netifaces.ifaddresses(interface)
-        if netifaces.AF_INET in addrs:
-          ips = addrs[netifaces.AF_INET]
-          for ip in ips:
-            if not ip['addr'] == '127.0.0.1':
-              if IPAddress(str(ip['addr'])) in IPNetwork(net['netmask']):
-                priv_ip = str(ip['addr'])
-                priv_interface = interface
-                net_id = net['name']
-                break
+for interface in interfaces:
+  if interface == 'lo':
+    continue
+  addrs = netifaces.ifaddresses(interface)
+  if not netifaces.AF_INET in addrs:
+    continue
+  ips = addrs[netifaces.AF_INET]
+  for ip in ips:
+    if ip['addr'] == '127.0.0.1':
+      continue
+    for net in networks:
+      if (('netmask' in net) and
+          (IPAddress(str(ip['addr'])) in IPNetwork(net['netmask']))):
+        priv_ip = str(ip['addr'])
+        priv_interface = interface
+        net_id = net['name']
+        break
 interfaces_to_inv = json.dumps(interfaces_to_inv)
 
 if not priv_ip:
   print('Failed to match local IPs against registered networks')
   sys.exit(1)
-octets = priv_ip.split('.')
-srvid = 'srv' + octets[2].zfill(3) + octets[3].zfill(3)
+
+srvid = 'srv{:03d}{:03d}'.format(*[int(x) for x in priv_ip.split('.')[2:]])
 
 os = platform.system()
 os_version = platform.release()
@@ -60,14 +63,13 @@ print('Inventory srvid: ' + srvid)
 # try to register the srvid
 if libsrvinv.register('srv', srvid) != 2: print('Register: done')
 # set values
-if net_id:
-  if libsrvinv.set('srv', srvid, 'net_id', net_id) == 0: print('net_id: ' + net_id)
-  if libsrvinv.set('srv', srvid, 'cpu_cores', cpu_cores) == 0: print('CPU cores: ' + cpu_cores)
-  if libsrvinv.set('srv', srvid, 'ram_size_mb', ram_size_mb) == 0: print('RAM size mb: ' + ram_size_mb)
-  if libsrvinv.set('srv', srvid, 'disk_size_gb', disk_size_gb) == 0: print('disk size gb: ' + disk_size_gb)
-  if libsrvinv.set('srv', srvid, 'interfaces', interfaces_to_inv) == 0: print('interfaces: ' + interfaces_to_inv)
-  if libsrvinv.set('srv', srvid, 'os', os) == 0: print('os: ' + os)
-  if libsrvinv.set('srv', srvid, 'os_version', os_version) == 0: print('os version: ' + os_version)
-  if libsrvinv.set('srv', srvid, 'os_arch', os_arch) == 0: print('os arch: ' + os_arch)
-  if libsrvinv.set('srv', srvid, 'priv_ip', priv_ip) == 0: print('priv ip: ' + priv_ip)
-  if libsrvinv.set('srv', srvid, 'priv_interface', priv_interface) == 0: print('priv interface: ' + priv_interface)
+if libsrvinv.set('srv', srvid, 'net_id', net_id) == 0: print('net_id: ' + net_id)
+if libsrvinv.set('srv', srvid, 'cpu_cores', cpu_cores) == 0: print('CPU cores: ' + cpu_cores)
+if libsrvinv.set('srv', srvid, 'ram_size_mb', ram_size_mb) == 0: print('RAM size mb: ' + ram_size_mb)
+if libsrvinv.set('srv', srvid, 'disk_size_gb', disk_size_gb) == 0: print('disk size gb: ' + disk_size_gb)
+if libsrvinv.set('srv', srvid, 'interfaces', interfaces_to_inv) == 0: print('interfaces: ' + interfaces_to_inv)
+if libsrvinv.set('srv', srvid, 'os', os) == 0: print('os: ' + os)
+if libsrvinv.set('srv', srvid, 'os_version', os_version) == 0: print('os version: ' + os_version)
+if libsrvinv.set('srv', srvid, 'os_arch', os_arch) == 0: print('os arch: ' + os_arch)
+if libsrvinv.set('srv', srvid, 'priv_ip', priv_ip) == 0: print('priv ip: ' + priv_ip)
+if libsrvinv.set('srv', srvid, 'priv_interface', priv_interface) == 0: print('priv interface: ' + priv_interface)
