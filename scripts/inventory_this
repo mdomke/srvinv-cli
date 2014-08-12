@@ -19,10 +19,10 @@ ram_size_mb = str(psutil.virtual_memory().total / 1024 / 1024)
 disk_size_gb = str(psutil.disk_usage('/').total / 1024 / 1024 / 1024)
 
 interfaces = netifaces.interfaces()
-interfaces_to_inv = []
+interfaces_to_inv = {}
 for interface in interfaces:
   addrs = netifaces.ifaddresses(interface)
-  interfaces_to_inv.append({interface: addrs})
+  interfaces_to_inv[interface] = addrs
 
 # set net by finding the network (has to be predefined)
 net_id = None
