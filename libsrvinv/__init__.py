@@ -151,6 +151,9 @@ def set(resource, resourceid, attribute, value):
       except ValueError:
         # is unparseable string
         pass
+      # dict needs to be encapsulated
+      if type(value) == dict:
+        value = [value]
       to_set_value = json.dumps({"value": value})
       i_status_code = _request_srvinv('patch', resource, resourceid, attribute, data=to_set_value)[0]
       if i_status_code == 202:
