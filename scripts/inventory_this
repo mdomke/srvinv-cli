@@ -4,15 +4,18 @@ srvinv-cli/scripts/inventory_this
 a script to register this machine inside the srvinv
 this is very basic and relies on some assumptions (e.g. disksize is only '/')
 '''
-import sys
-import psutil
-import netifaces
-import json
-import platform
-import string
-from netaddr import IPNetwork, IPAddress
 
-sys.path.append("..")
+import json
+from netaddr import IPNetwork, IPAddress
+import netifaces
+import os
+import platform
+import psutil
+import string
+import sys
+
+gs_base_path = os.path.join(os.path.dirname(__file__), os.pardir)
+sys.path.append(gs_base_path)
 
 import libsrvinv
 
