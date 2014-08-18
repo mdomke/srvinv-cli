@@ -5,8 +5,6 @@ a script to register this machine inside the srvinv
 this is very basic and relies on some assumptions (e.g. disksize is only '/')
 '''
 import sys
-sys.path.append("..")
-import libsrvinv
 import psutil
 import netifaces
 import json
@@ -14,46 +12,25 @@ import platform
 import string
 from netaddr import IPNetwork, IPAddress
 
+sys.path.append("..")
+
+import libsrvinv
+
 cpu_cores = str(psutil.cpu_count())
 ram_size_mb = str(psutil.virtual_memory().total / 1024 / 1024)
 disk_size_gb = str(psutil.disk_usage('/').total / 1024 / 1024 / 1024)
 
-interfaces = netifaces.interfaces()
-interfaces_to_inv = {}
-for interface in interfaces:
-  addrs = netifaces.ifaddresses(interface)
-  interfaces_to_inv[interface] = addrs
+interfaces_to_inv = libsrvinv.get_iface_to_addr()
 
-# set net by finding the network (has to be predefined)
-net_id = None
-networks = libsrvinv.search('net', 'name', '*')
-
-priv_ip = ''
-priv_interface = ''
-for interface in interfaces:
-  if interface.startswith('lo'):
-    continue
-  addrs = netifaces.ifaddresses(interface)
-  if not netifaces.AF_INET in addrs:
-    continue
-  ips = addrs[netifaces.AF_INET]
-  for ip in ips:
-    if ip['addr'] == '127.0.0.1':
-      continue
-    for net in networks:
-      if (('netmask' in net) and
-          (IPAddress(str(ip['addr'])) in IPNetwork(net['netmask']))):
-        priv_ip = str(ip['addr'])
-        priv_interface = interface
-        net_id = net['name']
-        break
-interfaces_to_inv = json.dumps(interfaces_to_inv)
+(priv_ip, priv_interface, net_id) = libsrvinv.get_priv_info(interfaces_to_inv)
 
 if not priv_ip:
   print('Failed to match local IPs against registered networks')
   sys.exit(1)
 
-srvid = 'srv{:03d}{:03d}'.format(*[int(x) for x in priv_ip.split('.')[2:]])
+interfaces_to_inv = json.dumps(interfaces_to_inv)
+
+srvid = libsrvinv.get_own_srvid(priv_ip)
 
 os = platform.system()
 os_version = platform.release()

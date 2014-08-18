@@ -99,11 +99,12 @@ def get_iface_to_addr():
     interfaces_to_inv[interface] = addrs
   return interfaces_to_inv
 
-def get_priv_info():
+def get_priv_info(d_iface_to_addr=None):
   s_net_id = None
-  s_priv_ip = ''
-  s_priv_interface = ''
-  d_iface_to_addr = get_iface_to_addr()
+  s_priv_ip = None
+  s_priv_interface = None
+  if d_iface_to_addr == None:
+    d_iface_to_addr = get_iface_to_addr()
   networks = search('net', 'name', '*')
   for s_iface, d_addr in d_iface_to_addr.items():
     if s_iface.startswith('lo'):
@@ -112,19 +113,23 @@ def get_priv_info():
       continue
     ips = d_addr[netifaces.AF_INET]
     for ip in ips:
+      o_ip = IPAddress(str(ip['addr']))
+      if not o_ip.is_private():
+        continue
       if ip['addr'] == '127.0.0.1':
         continue
       for net in networks:
         if (('netmask' in net) and
-            (IPAddress(str(ip['addr'])) in IPNetwork(net['netmask']))):
+            (o_ip in IPNetwork(net['netmask']))):
           s_priv_ip = str(ip['addr'])
           s_priv_interface = s_iface
           s_net_id = net['name']
           break
   return (s_priv_ip, s_priv_interface, s_net_id)
 
-def get_own_srvid():
-  s_priv_ip = get_priv_info()[0]
+def get_own_srvid(s_priv_ip=None):
+  if not s_priv_ip:
+    s_priv_ip = get_priv_info()[0]
   if not s_priv_ip:
     return None
   s_srvid = 'srv{:03d}{:03d}'.format(*[int(x) for x in s_priv_ip.split('.')[2:]])
