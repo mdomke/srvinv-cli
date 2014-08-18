@@ -4,6 +4,8 @@ libsrvinv - the main library serving default methods for srvinv clients
 
 from . import config
 from . import helpers
+from netaddr import IPNetwork, IPAddress
+import netifaces
 import requests
 import json
 import os
@@ -89,6 +91,45 @@ class SrvinvCache:
 
 go_srvinv_cache = SrvinvCache()
 
+def get_iface_to_addr():
+  interfaces = netifaces.interfaces()
+  interfaces_to_inv = {}
+  for interface in interfaces:
+    addrs = netifaces.ifaddresses(interface)
+    interfaces_to_inv[interface] = addrs
+  return interfaces_to_inv
+
+def get_priv_info():
+  s_net_id = None
+  s_priv_ip = ''
+  s_priv_interface = ''
+  d_iface_to_addr = get_iface_to_addr()
+  networks = search('net', 'name', '*')
+  for s_iface, d_addr in d_iface_to_addr.items():
+    if s_iface.startswith('lo'):
+      continue
+    if not netifaces.AF_INET in d_addr:
+      continue
+    ips = d_addr[netifaces.AF_INET]
+    for ip in ips:
+      if ip['addr'] == '127.0.0.1':
+        continue
+      for net in networks:
+        if (('netmask' in net) and
+            (IPAddress(str(ip['addr'])) in IPNetwork(net['netmask']))):
+          s_priv_ip = str(ip['addr'])
+          s_priv_interface = s_iface
+          s_net_id = net['name']
+          break
+  return (s_priv_ip, s_priv_interface, s_net_id)
+
+def get_own_srvid():
+  s_priv_ip = get_priv_info()[0]
+  if not s_priv_ip:
+    return None
+  s_srvid = 'srv{:03d}{:03d}'.format(*[int(x) for x in s_priv_ip.split('.')[2:]])
+  return s_srvid
+
 def _request_srvinv(rtype, resource, resourceid=None, attribute=None, data=None):
   """builds a url and sends a requests to srvinv
   returns a tuple of http-status-code and json-parsed
@@ -116,12 +157,14 @@ def _request_srvinv(rtype, resource, resourceid=None, attribute=None, data=None)
   return (i_status_code, x_reply)
 # end def _request_srvinv
 
-def get(resource, resourceid, attribute):
+def get(resource, resourceid, attribute=None):
   """returns a tuple of return-code and text
   on success 0 and the requested value
   1 if the resource does not exist
   2 if the attribute does not exist
   3 on error"""
+  if resource == 'srv' and resourceid == 'self':
+    resourceid = get_own_srvid()
   (i_status_code, x_reply) = _request_srvinv('get', resource, resourceid)
   if i_status_code == 200:
     if not attribute:
