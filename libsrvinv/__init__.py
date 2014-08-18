@@ -116,7 +116,8 @@ def get_priv_info():
         continue
       for net in networks:
         if (('netmask' in net) and
-            (IPAddress(str(ip['addr'])) in IPNetwork(net['netmask']))):
+            (IPAddress(str(ip['addr'])) in IPNetwork(net['netmask'])) and
+            (IPAddress(str(ip['addr'])).is_private()) ):
           s_priv_ip = str(ip['addr'])
           s_priv_interface = s_iface
           s_net_id = net['name']
