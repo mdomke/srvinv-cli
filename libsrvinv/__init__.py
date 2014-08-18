@@ -113,11 +113,14 @@ def get_priv_info(d_iface_to_addr=None):
       continue
     ips = d_addr[netifaces.AF_INET]
     for ip in ips:
+      o_ip = IPAddress(str(ip['addr']))
+      if not o_ip.is_private():
+        continue
       if ip['addr'] == '127.0.0.1':
         continue
       for net in networks:
         if (('netmask' in net) and
-            (IPAddress(str(ip['addr'])) in IPNetwork(net['netmask']))):
+            (o_ip in IPNetwork(net['netmask']))):
           s_priv_ip = str(ip['addr'])
           s_priv_interface = s_iface
           s_net_id = net['name']
