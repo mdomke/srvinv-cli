@@ -75,7 +75,7 @@ if __name__ == "__main__":
         type=str
     )
     parser.add_argument("resourceid",
-        help="the resource id",
+        help="the resource ids (comma-separated list)",
         type=str
     )
     parser.add_argument("--attribute",
@@ -88,8 +88,13 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    i_ret = main(args.verb, args.resource, args.resourceid, args.attribute, args.value)
 
-    exit(i_ret)
+    i_out = 0
+    for resourceid in args.resourceid.split(','):
+        i_ret = main(args.verb, args.resource, resourceid, args.attribute, args.value)
+        if i_ret:
+            i_out = i_ret
+
+    exit(i_out)
 
 #[EOF]
