@@ -61,6 +61,9 @@ def main(verb, resource, resourceid, attribute, value):
         if i_ret != 0:
             print('error communicating with srvinv daemon')
 
+    else:
+        print('error unknown verb: {}'.format(verb))
+
     return i_ret
 # end def main
 
