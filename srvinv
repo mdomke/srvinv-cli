@@ -68,7 +68,9 @@ def main(verb, resource, resourceid, attribute, value):
 
     elif verb == 'delete':
         i_ret = libsrvinv.delete(resource, resourceid)
-        if i_ret != 0:
+        if i_ret == 1:
+            print('resource not found')
+        elif i_ret != 0:
             print('error communicating with srvinv daemon')
 
     else:

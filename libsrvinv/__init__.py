@@ -256,8 +256,10 @@ def delete(resource, resourceid):
   i_status_code = _request_srvinv('delete', resource, resourceid)[0]
   if i_status_code == 202:
     return 0
-  else:
+  elif i_status_code == 404:
     return 1
+  else:
+    return 2
 # end def delete
 
 
