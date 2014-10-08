@@ -81,12 +81,24 @@ if __name__ == "__main__":
         help="the resource ids (comma-separated list)",
         type=str
     )
+    parser.add_argument('attribute',
+        nargs='?',
+        default=None,
+        type=str,
+        help='the attribute to be accessed',
+    )
+    parser.add_argument('value',
+        nargs='?',
+        default=None,
+        type=str,
+        help='the value to be setted in an attribute',
+    )
     parser.add_argument("--attribute",
-        help="the attribute to be accessed",
+        help="the attribute to be accessed (deprecated)",
         type=str
     )
     parser.add_argument("--value",
-        help="the value to be setted in an attribute",
+        help="the value to be setted in an attribute (deprecated)",
         type=str
     )
 
