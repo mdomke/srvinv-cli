@@ -18,34 +18,36 @@ def main(verb, resource, resourceid, attribute, value):
     i_ret = 0
 
     if verb == 'get':
-        (i_ret, x_text) = libsrvinv.get(resource, resourceid, attribute)
-        if i_ret == 0:
-            print(json.dumps(x_text))
-        elif i_ret == 1:
-            print('resource not found')
-        elif i_ret == 2:
-            print('attribute not set')
-        elif i_ret == 3:
-            print('error communicating with srvinv daemon')
+        if value != None:
+            print('value set in get operation')
         else:
-            print('unknown error {}'.format(i_ret))
+            (i_ret, x_text) = libsrvinv.get(resource, resourceid, attribute)
+            if i_ret == 0:
+                print(json.dumps(x_text))
+            elif i_ret == 1:
+                print('resource not found')
+            elif i_ret == 2:
+                print('attribute not set')
+            elif i_ret == 3:
+                print('error communicating with srvinv daemon')
+            else:
+                print('unknown error {}'.format(i_ret))
 
     elif verb == 'set':
         if attribute == None:
             print('missing attribute')
+        elif value == None:
+            print('missing value')
         else:
-            if value == None:
-                print('missing value')
+            i_ret = libsrvinv.set(resource, resourceid, attribute, value)
+            if i_ret == 0:
+                pass
+            elif i_ret in (1, 2):
+                print('error communicating with srvinv daemon')
+            elif i_ret == 3:
+                print('resource not found')
             else:
-                i_ret = libsrvinv.set(resource, resourceid, attribute, value)
-                if i_ret == 0:
-                    pass
-                elif i_ret in (1, 2):
-                    print('error communicating with srvinv daemon')
-                elif i_ret == 3:
-                    print('resource not found')
-                else:
-                    print('unknown error {}'.format(i_ret))
+                print('unknown error {}'.format(i_ret))
 
     elif verb == 'register':
         i_ret = libsrvinv.register(resource, resourceid)
@@ -112,4 +114,4 @@ if __name__ == "__main__":
 
     exit(i_out)
 
-#[EOF]
+# [EOF]
