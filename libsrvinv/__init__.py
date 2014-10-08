@@ -162,7 +162,7 @@ def _request_srvinv(rtype, resource, resourceid=None, attribute=None, data=None)
   return (i_status_code, x_reply)
 # end def _request_srvinv
 
-def get(resource, resourceid, attribute=None):
+def get(resource, resourceid=None, attribute=None):
   """returns a tuple of return-code and text
   on success 0 and the requested value
   1 if the resource does not exist
@@ -206,6 +206,8 @@ def set(resource, resourceid, attribute, value):
       i_status_code = _request_srvinv('patch', resource, resourceid, attribute, data=to_set_value)[0]
       if i_status_code == 202:
         return 0
+      elif i_status_code == 304:
+        return 4
       else:
         return 2
   elif i_status_code == 404:

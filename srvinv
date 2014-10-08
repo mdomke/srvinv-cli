@@ -52,6 +52,8 @@ def main(verb, resource, resourceid, attribute, value):
                 print('error communicating with srvinv daemon')
             elif i_ret == 3:
                 print('resource not found')
+            elif i_ret == 4:
+                print('attribute unchanged')
             else:
                 print('unknown error {}'.format(i_ret))
 
