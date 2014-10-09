@@ -2,16 +2,18 @@
 libsrvinv - the main library serving default methods for srvinv clients
 '''
 
-from . import config
-from . import helpers
 from netaddr import IPNetwork, IPAddress
 import netifaces
 import requests
-import json
+#import json
+import bson.json_util as json
 import os
 import fnmatch
 import time
 from datetime import datetime
+
+from . import config
+from . import helpers
 
 api_url = config.master_url + config.api_version + '/'
 
