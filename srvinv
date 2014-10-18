@@ -1,6 +1,13 @@
 #!/usr/bin/env python
-'''
-srvinv - a command-line-interface to the srvinv server inventory server
+# -*- coding: UTF-8 -*-
+
+# Copyright:
+#   2014 brtz <github.com/brtz>
+#   2014 perfide <github.com/perfide>
+# License: Apache License 2.0+
+#   http://www.apache.org/licenses/LICENSE-2.0
+
+"""srvinv - a command-line-interface to the srvinv server inventory server
 
 usage examples:
 ---------------
@@ -12,12 +19,12 @@ srvinv register srv srvid
   will register a new srvid in inventory
 srvinv delete srv srvid
   will remove a srvid from inventory
-'''
+"""
 
 import argparse
-import json
 
 import libsrvinv
+import libsrvinv.bson_helper as json
 
 
 def main(verb, resource, resourceid, attribute, value):
