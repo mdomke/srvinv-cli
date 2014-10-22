@@ -1,19 +1,25 @@
-'''
-libsrvinv - the main library serving default methods for srvinv clients
-'''
+#!/usr/bin/env python3
+# -*- coding: UTF-8 -*-
+
+# Copyright:
+#   2014 brtz <github.com/brtz>
+#   2014 perfide <github.com/perfide>
+# License: Apache License 2.0+
+#   http://www.apache.org/licenses/LICENSE-2.0
+
+"""libsrvinv - the main library serving default methods for srvinv clients
+"""
 
 from netaddr import IPNetwork, IPAddress
 import netifaces
 import requests
-#import json
-import bson.json_util as json
 import os
 import fnmatch
 import time
 from datetime import datetime
 
 from . import config
-from . import helpers
+from . import bson_helper as json
 
 api_url = config.master_url + config.api_version + '/'
 
@@ -268,7 +274,6 @@ def delete(resource, resourceid):
 def search(resource, attribute, value):
     """searches for objects with the given attribute/value combination
     value supports wildcards
-    use_json: return a py-list if set to False, else return a json-string
     returns a list of object dictionaries"""
     found_resources = []
 
