@@ -1,6 +1,13 @@
 #!/usr/bin/env python
-'''
-srvsearch - a tool to search the srvinv server inventory server
+# -*- coding: UTF-8 -*-
+
+# Copyright:
+#   2014 brtz <github.com/brtz>
+#   2014 perfide <github.com/perfide>
+# License: Apache License 2.0+
+#   http://www.apache.org/licenses/LICENSE-2.0
+
+"""srvsearch - a tool to search the srvinv server inventory server
 
 usage examples:
 ---------------
@@ -8,12 +15,13 @@ srvsearch srv deployed_with "docker"
   returns a json array of servers that are deployed with docker
 srvsearch srv name '*'
   returns a json array of all servers
-'''
+"""
 
 import argparse
-import json
 
 import libsrvinv
+import libsrvinv.bson_helper as json
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
