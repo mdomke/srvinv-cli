@@ -1,89 +1,142 @@
 #!/usr/bin/env python
-'''
-srvinv - a server inventory
+# -*- coding: UTF-8 -*-
+
+# Copyright:
+#   2014 brtz <github.com/brtz>
+#   2014 perfide <github.com/perfide>
+# License: Apache License 2.0+
+#   http://www.apache.org/licenses/LICENSE-2.0
+
+"""srvinv - a command-line-interface to the srvinv server inventory server
 
 usage examples:
 ---------------
-srvinv get srv srvid --attribute interfaces: returns a srvid's interfaces formatted as json
-srvinv set srv srvid --attribute is_provisioned --value "true": sets is_provisioned to true on a srvid
-srvinv register srv srvid: will register a new srvid in inventory
-srvinv delete srv srvid: will remove a srvid from inventory
-'''
+srvinv get srv srvid --attribute interfaces
+  returns a srvid's interfaces formatted as json
+srvinv set srv srvid --attribute is_provisioned --value "true"
+  sets is_provisioned to true on a srvid
+srvinv register srv srvid
+  will register a new srvid in inventory
+srvinv delete srv srvid
+  will remove a srvid from inventory
+"""
 
 import argparse
-import json
+
 import libsrvinv
+import libsrvinv.bson_helper as json
+
+
+def main(verb, resource, resourceid, attribute, value):
+    i_ret = 0
+
+    if verb == 'get':
+        if value is not None:
+            print('value set in get operation')
+        else:
+            (i_ret, x_text) = libsrvinv.get(resource, resourceid, attribute)
+            if i_ret == 0:
+                print(json.dumps(x_text))
+            elif i_ret == 1:
+                print('resource not found')
+            elif i_ret == 2:
+                print('attribute not set')
+            elif i_ret == 3:
+                print('error communicating with srvinv daemon')
+            else:
+                print('unknown error {}'.format(i_ret))
+
+    elif verb == 'set':
+        if attribute is None:
+            print('missing attribute')
+        elif value is None:
+            print('missing value')
+        else:
+            i_ret = libsrvinv.set(resource, resourceid, attribute, value)
+            if i_ret == 0:
+                pass
+            elif i_ret in (1, 2):
+                print('error communicating with srvinv daemon')
+            elif i_ret == 3:
+                print('resource not found')
+            elif i_ret == 4:
+                print('attribute unchanged')
+            else:
+                print('unknown error {}'.format(i_ret))
+
+    elif verb == 'register':
+        i_ret = libsrvinv.register(resource, resourceid)
+        if i_ret == 1:
+            print('conflict: already registered')
+        elif i_ret == 2:
+            print('error communicating with srvinv daemon')
+        elif i_ret != 0:
+            print('error failed with error-code {}'.format(i_ret))
+
+    elif verb == 'delete':
+        i_ret = libsrvinv.delete(resource, resourceid)
+        if i_ret == 1:
+            print('resource not found')
+        elif i_ret != 0:
+            print('error communicating with srvinv daemon')
+
+    else:
+        print('error unknown verb: {}'.format(verb))
+
+    return i_ret
+# end def main
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("verb",
-      help="verbs to be used: get, set, register, delete",
-      type=str
+    parser.add_argument(
+        "verb",
+        help="verbs to be used: get, set, register, delete",
+        type=str
     )
-    parser.add_argument("resource",
-      help="resources to be used: env, net, srv",
-      type=str
+    parser.add_argument(
+        "resource",
+        help="resources to be used: env, net, srv",
+        type=str
     )
-    parser.add_argument("resourceid",
-      help="the resource id",
-      type=str
+    parser.add_argument(
+        "resourceid",
+        help="the resource ids (comma-separated list)",
+        type=str
     )
-    parser.add_argument("--attribute",
-      help="the attribute to be accessed",
-      type=str
+    parser.add_argument(
+        'attribute',
+        nargs='?',
+        default=None,
+        type=str,
+        help='the attribute to be accessed',
     )
-    parser.add_argument("--value",
-      help="the value to be setted in an attribute",
-      type=str
+    parser.add_argument(
+        'value',
+        nargs='?',
+        default=None,
+        type=str,
+        help='the value to be setted in an attribute',
+    )
+    parser.add_argument(
+        "--attribute",
+        help="the attribute to be accessed (deprecated)",
+        type=str
+    )
+    parser.add_argument(
+        "--value",
+        help="the value to be setted in an attribute (deprecated)",
+        type=str
     )
 
     args = parser.parse_args()
-    i_ret = 0
 
-    if args.verb == 'get':
-      (i_ret, x_text) = libsrvinv.get(args.resource, args.resourceid, args.attribute)
-      if i_ret == 0:
-        print(json.dumps(x_text))
-      elif i_ret == 1:
-        print('resource not found')
-      elif i_ret == 2:
-        print('attribute not set')
-      elif i_ret == 3:
-        print('error communicating with srvinv daemon')
-      else:
-        print('unknown error {}'.format(i_ret))
+    i_out = 0
+    for resourceid in args.resourceid.split(','):
+        i_ret = main(args.verb, args.resource, resourceid,
+                     args.attribute, args.value)
+        if i_ret:
+            i_out = i_ret
 
-    elif args.verb == 'set':
-      if args.attribute == None:
-        print('missing attribute')
-      else:
-        if args.value == None:
-          print('missing value')
-        else:
-          i_ret = libsrvinv.set(args.resource, args.resourceid, args.attribute, args.value)
-          if i_ret == 0:
-            pass
-          elif i_ret in (1, 2):
-            print('error communicating with srvinv daemon')
-          elif i_ret == 3:
-            print('resource not found')
-          else:
-            print('unknown error {}'.format(i_ret))
+    exit(i_out)
 
-    elif args.verb == 'register':
-      i_ret = libsrvinv.register(args.resource, args.resourceid)
-      if i_ret == 1:
-        print('conflict: already registered')
-      elif i_ret == 2:
-        print('error communicating with srvinv daemon')
-      elif i_ret != 0:
-        print('error failed with error-code {}'.format(i_ret))
-
-    elif args.verb == 'delete':
-      i_ret = libsrvinv.delete(args.resource, args.resourceid)
-      if i_ret != 0:
-        print('error communicating with srvinv daemon')
-
-    exit(i_ret)
-
-#[EOF]
+# [EOF]

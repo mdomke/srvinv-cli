@@ -1,36 +1,53 @@
 #!/usr/bin/env python
-'''
-srvsearch - a tool to search the srvinv
+# -*- coding: UTF-8 -*-
+
+# Copyright:
+#   2014 brtz <github.com/brtz>
+#   2014 perfide <github.com/perfide>
+# License: Apache License 2.0+
+#   http://www.apache.org/licenses/LICENSE-2.0
+
+"""srvsearch - a tool to search the srvinv server inventory server
 
 usage examples:
 ---------------
-srvsearch srv deployed_with "docker": returns a json array of srvids that are deployed with docker
-'''
+srvsearch srv deployed_with "docker"
+  returns a json array of servers that are deployed with docker
+srvsearch srv name '*'
+  returns a json array of all servers
+"""
 
 import argparse
-import json
+
 import libsrvinv
+import libsrvinv.bson_helper as json
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("resource",
-      help="resources to be used: env, net, srv",
-      type=str
+    parser.add_argument(
+        "resource",
+        help="resources to be used: env, net, srv",
+        type=str
     )
-    parser.add_argument("attribute",
-      help="the attribute to be searched",
-      type=str
+    parser.add_argument(
+        "attribute",
+        help="the attribute to be searched",
+        type=str
     )
-    parser.add_argument("value",
-      help="the value to be searched for",
-      type=str
+    parser.add_argument(
+        "value",
+        help="the value to be searched for",
+        type=str
     )
 
     args = parser.parse_args()
 
     x_result = libsrvinv.search(args.resource, args.attribute, args.value)
-    if x_result == False:
-      print('error communicating with srvinv daemon')
-      exit(1)
+    if x_result is False:
+        print('error communicating with srvinv daemon')
+        exit(1)
     else:
-      print(json.dumps(x_result))
+        print(json.dumps(x_result))
+
+# [EOF]
