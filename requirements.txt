@@ -1,5 +1,4 @@
 dnspython==1.12.0
-easyzone==1.2.2
 iscpy==1.05
 netaddr==0.7.12
 netifaces==0.10.4
