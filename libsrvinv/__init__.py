@@ -241,6 +241,8 @@ def set(resource, resourceid, attribute, value):
 
 
 def add(resource, resourceid, attribute, value):
+    """add a item to a attribute-list
+    acts like the add-function of sets"""
     if resource == 'srv' and resourceid == 'self':
         resourceid = get_own_srvid()
     (return_code, current_values) = get(resource, resourceid, attribute)
@@ -265,6 +267,8 @@ def add(resource, resourceid, attribute, value):
 
 
 def remove(resource, resourceid, attribute, value):
+    """remove a item from a attribute-list
+    acts like the remove-function of sets"""
     if resource == 'srv' and resourceid == 'self':
         resourceid = get_own_srvid()
     (return_code, current_values) = get(resource, resourceid, attribute)
