@@ -302,6 +302,10 @@ def remove(resource, resourceid, attribute, value):
 def register(resource, resourceid):
     """register the given resource-name for the given resource
     retuns 0 on success, 1 if the name exists and 2 on error"""
+    if resource == 'srv' and resourceid == 'self':
+        resourceid = get_own_srvid()
+        if resourceid is None:
+            return 9
     to_register_resource = {
         "name": resourceid,
         "created_at": datetime.utcnow().isoformat(),
@@ -322,6 +326,10 @@ def register(resource, resourceid):
 def delete(resource, resourceid):
     """deletes the given resource-name in the given resource
     returns 0 on success and 1 on errror"""
+    if resource == 'srv' and resourceid == 'self':
+        resourceid = get_own_srvid()
+        if resourceid is None:
+            return 9
     i_status_code = _request_srvinv('delete', resource, resourceid)[0]
     if i_status_code == 202:
         return 0
