@@ -43,6 +43,8 @@ def main(verb, resource, resourceid, attribute, value):
                 print('attribute not set')
             elif i_ret == 3:
                 print('error communicating with srvinv daemon')
+            elif i_ret == 9:
+                print('error unable to build srv-id')
             else:
                 print('unknown error {}'.format(i_ret))
 
@@ -61,6 +63,8 @@ def main(verb, resource, resourceid, attribute, value):
                 print('resource not found')
             elif i_ret == 4:
                 print('attribute unchanged')
+            elif i_ret == 9:
+                print('error unable to build srv-id')
             else:
                 print('unknown error {}'.format(i_ret))
 
@@ -70,8 +74,10 @@ def main(verb, resource, resourceid, attribute, value):
             print('failed to get attribute')
         elif return_code == 2:
             print('attribute is not a list')
-        elif return_code == 1:
+        elif return_code == 3:
             print('failed to set attribute')
+        elif return_code == 9:
+            print('error unable to build srv-id')
 
     elif verb == 'remove':
         return_code = libsrvinv.remove(resource, resourceid, attribute, value)
@@ -79,8 +85,10 @@ def main(verb, resource, resourceid, attribute, value):
             print('failed to get attribute')
         elif return_code == 2:
             print('attribute is not a list')
-        elif return_code == 1:
+        elif return_code == 3:
             print('failed to set attribute')
+        elif return_code == 9:
+            print('error unable to build srv-id')
 
     elif verb == 'register':
         i_ret = libsrvinv.register(resource, resourceid)
@@ -88,6 +96,8 @@ def main(verb, resource, resourceid, attribute, value):
             print('conflict: already registered')
         elif i_ret == 2:
             print('error communicating with srvinv daemon')
+        elif i_ret == 9:
+            print('error unable to build srv-id')
         elif i_ret != 0:
             print('error failed with error-code {}'.format(i_ret))
 
@@ -95,6 +105,8 @@ def main(verb, resource, resourceid, attribute, value):
         i_ret = libsrvinv.delete(resource, resourceid)
         if i_ret == 1:
             print('resource not found')
+        elif i_ret == 9:
+            print('error unable to build srv-id')
         elif i_ret != 0:
             print('error communicating with srvinv daemon')
 

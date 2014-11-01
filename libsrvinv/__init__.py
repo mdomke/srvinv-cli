@@ -190,6 +190,8 @@ def get(resource, resourceid=None, attribute=None):
     3 on error"""
     if resource == 'srv' and resourceid == 'self':
         resourceid = get_own_srvid()
+        if resourceid is None:
+            return (9, None)
     (i_status_code, x_reply) = _request_srvinv('get', resource, resourceid)
     if i_status_code == 200:
         if not attribute:
@@ -211,6 +213,8 @@ def set(resource, resourceid, attribute, value):
     and 3 is the object does not exist"""
     if resource == 'srv' and resourceid == 'self':
         resourceid = get_own_srvid()
+        if resourceid is None:
+            return 9
     i_status_code = _request_srvinv('get', resource, resourceid)[0]
     if i_status_code == 200:
             # validate if value is json so we dont put it in there as string
@@ -245,6 +249,8 @@ def add(resource, resourceid, attribute, value):
     acts like the add-function of sets"""
     if resource == 'srv' and resourceid == 'self':
         resourceid = get_own_srvid()
+        if resourceid is None:
+            return 9
     (return_code, current_values) = get(resource, resourceid, attribute)
     try:
         value = json.loads(value)
@@ -271,6 +277,8 @@ def remove(resource, resourceid, attribute, value):
     acts like the remove-function of sets"""
     if resource == 'srv' and resourceid == 'self':
         resourceid = get_own_srvid()
+        if resourceid is None:
+            return 9
     (return_code, current_values) = get(resource, resourceid, attribute)
     if return_code == 2:
         return -2
@@ -282,7 +290,7 @@ def remove(resource, resourceid, attribute, value):
         value = json.loads(value)
     except ValueError:
         pass
-    if not value in current_values:
+    if value not in current_values:
         return -1
     current_values.remove(value)
     return_code = set(resource, resourceid, attribute, current_values)
