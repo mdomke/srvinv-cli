@@ -190,6 +190,8 @@ def get(resource, resourceid=None, attribute=None):
     3 on error"""
     if resource == 'srv' and resourceid == 'self':
         resourceid = get_own_srvid()
+        if resourceid is None:
+            return (9, None)
     (i_status_code, x_reply) = _request_srvinv('get', resource, resourceid)
     if i_status_code == 200:
         if not attribute:
@@ -209,6 +211,10 @@ def set(resource, resourceid, attribute, value):
     """sets a attribut of a existing object
     return 0 on succes, 1/2 if first/second connections fails
     and 3 is the object does not exist"""
+    if resource == 'srv' and resourceid == 'self':
+        resourceid = get_own_srvid()
+        if resourceid is None:
+            return 9
     i_status_code = _request_srvinv('get', resource, resourceid)[0]
     if i_status_code == 200:
             # validate if value is json so we dont put it in there as string
@@ -238,9 +244,68 @@ def set(resource, resourceid, attribute, value):
         return 1
 
 
+def add(resource, resourceid, attribute, value):
+    """add a item to a attribute-list
+    acts like the add-function of sets"""
+    if resource == 'srv' and resourceid == 'self':
+        resourceid = get_own_srvid()
+        if resourceid is None:
+            return 9
+    (return_code, current_values) = get(resource, resourceid, attribute)
+    try:
+        value = json.loads(value)
+    except ValueError:
+        pass
+    if return_code == 2:
+        current_values = [value]
+    elif return_code != 0:
+        return 1
+    else:
+        if not isinstance(current_values, list):
+            return 2
+        if value in current_values:
+            return -1
+        current_values.append(value)
+    return_code = set(resource, resourceid, attribute, current_values)
+    if return_code:
+        return 3
+    return 0
+
+
+def remove(resource, resourceid, attribute, value):
+    """remove a item from a attribute-list
+    acts like the remove-function of sets"""
+    if resource == 'srv' and resourceid == 'self':
+        resourceid = get_own_srvid()
+        if resourceid is None:
+            return 9
+    (return_code, current_values) = get(resource, resourceid, attribute)
+    if return_code == 2:
+        return -2
+    elif return_code != 0:
+        return 1
+    if not isinstance(current_values, list):
+        return 2
+    try:
+        value = json.loads(value)
+    except ValueError:
+        pass
+    if value not in current_values:
+        return -1
+    current_values.remove(value)
+    return_code = set(resource, resourceid, attribute, current_values)
+    if return_code:
+        return 3
+    return 0
+
+
 def register(resource, resourceid):
     """register the given resource-name for the given resource
     retuns 0 on success, 1 if the name exists and 2 on error"""
+    if resource == 'srv' and resourceid == 'self':
+        resourceid = get_own_srvid()
+        if resourceid is None:
+            return 9
     to_register_resource = {
         "name": resourceid,
         "created_at": datetime.utcnow().isoformat(),
@@ -261,6 +326,10 @@ def register(resource, resourceid):
 def delete(resource, resourceid):
     """deletes the given resource-name in the given resource
     returns 0 on success and 1 on errror"""
+    if resource == 'srv' and resourceid == 'self':
+        resourceid = get_own_srvid()
+        if resourceid is None:
+            return 9
     i_status_code = _request_srvinv('delete', resource, resourceid)[0]
     if i_status_code == 202:
         return 0
