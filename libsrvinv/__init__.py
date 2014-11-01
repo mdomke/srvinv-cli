@@ -242,7 +242,10 @@ def add(resource, resourceid, attribute, value):
     if resource == 'srv' and resourceid == 'self':
         resourceid = get_own_srvid()
     (return_code, current_values) = get(resource, resourceid, attribute)
-    value = json.loads(value)
+    try:
+        value = json.loads(value)
+    except ValueError:
+        pass
     if return_code == 2:
         current_values = [value]
     elif return_code != 0:
@@ -269,7 +272,10 @@ def remove(resource, resourceid, attribute, value):
         return 1
     if not isinstance(current_values, list):
         return 2
-    value = json.loads(value)
+    try:
+        value = json.loads(value)
+    except ValueError:
+        pass
     if not value in current_values:
         return -1
     current_values.remove(value)
