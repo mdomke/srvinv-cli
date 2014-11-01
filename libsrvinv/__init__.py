@@ -238,6 +238,46 @@ def set(resource, resourceid, attribute, value):
         return 1
 
 
+def add(resource, resourceid, attribute, value):
+    if resource == 'srv' and resourceid == 'self':
+        resourceid = get_own_srvid()
+    (return_code, current_values) = get(resource, resourceid, attribute)
+    if return_code == 2:
+        current_values = [value]
+    elif return_code != 0:
+        return 1
+    else:
+        if not isinstance(current_values, list):
+            return 2
+        if value in current_values:
+            return -1
+        current_values.append(value)
+    return_code = set(resource, resourceid, attribute, current_values)
+    if return_code:
+        return 3
+    return 0
+
+
+def remove(resource, resourceid, attribute, value):
+    if resource == 'srv' and resourceid == 'self':
+        resourceid = get_own_srvid()
+    (return_code, current_values) = get(resource, resourceid, attribute)
+    if return_code == 2:
+        return -2
+    elif return_code != 0:
+        return 1
+    else:
+        if not isinstance(current_values, list):
+            return 2
+        if not value in current_values:
+            return -1
+        current_values.remove(value)
+    return_code = set(resource, resourceid, attribute, current_values)
+    if return_code:
+        return 3
+    return 0
+
+
 def register(resource, resourceid):
     """register the given resource-name for the given resource
     retuns 0 on success, 1 if the name exists and 2 on error"""
