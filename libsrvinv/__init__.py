@@ -209,6 +209,8 @@ def set(resource, resourceid, attribute, value):
     """sets a attribut of a existing object
     return 0 on succes, 1/2 if first/second connections fails
     and 3 is the object does not exist"""
+    if resource == 'srv' and resourceid == 'self':
+        resourceid = get_own_srvid()
     i_status_code = _request_srvinv('get', resource, resourceid)[0]
     if i_status_code == 200:
             # validate if value is json so we dont put it in there as string
