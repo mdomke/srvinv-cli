@@ -70,7 +70,9 @@ def main(verb, resource, resourceid, attribute, value):
 
     elif verb == 'add':
         return_code = libsrvinv.add(resource, resourceid, attribute, value)
-        if return_code == 1:
+        if return_code == -1:
+            print('item exists')
+        elif return_code == 1:
             print('failed to get attribute')
         elif return_code == 2:
             print('attribute is not a list')
@@ -81,7 +83,9 @@ def main(verb, resource, resourceid, attribute, value):
 
     elif verb == 'remove':
         return_code = libsrvinv.remove(resource, resourceid, attribute, value)
-        if return_code == 1:
+        if return_code == -1:
+            print('item does not exist')
+        elif return_code == 1:
             print('failed to get attribute')
         elif return_code == 2:
             print('attribute is not a list')
