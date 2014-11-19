@@ -1,5 +1,4 @@
 *.pyc
-libsrvinv/config.py
 env/*
 
 build/

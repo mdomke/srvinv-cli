@@ -18,22 +18,27 @@ import fnmatch
 import time
 from datetime import datetime
 
-from . import config
 from . import bson_helper as json
-
-api_url = config.master_url + config.api_version + '/'
+from .config import config
 
 session = requests.Session()
+api_url = (config.get("global", "master_url").rstrip("/") + "/" +
+           config.get("global", "api_version") + '/')
 
 
-class SrvinvCache:
+class SrvinvCache(object):
     def __init__(self, b_cache_use_file=None):
         self.d_cache = {}
         self.df_times = {}
-        self.b_cache_use_file = b_cache_use_file if \
-            b_cache_use_file is not None else config.cache_use_file
-        self.s_cache_path_tmpl = config.cache_path_tmpl
-        self.i_cache_duration_in_s = config.cache_duration_in_s
+        if b_cache_use_file is None:
+            try:
+                self.b_cache_use_file = config.getboolean("cache", "use_file")
+            except ValueError:
+                self.b_cache_use_file = False
+        else:
+            self.b_cache_use_file = b_cache_use_file
+        self.s_cache_path_tmpl = config.get("cache", "path_tmpl")
+        self.i_cache_duration_in_s = config.getint("cache", "duration_in_s")
         return
     # end def __init__
 
