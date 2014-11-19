@@ -120,7 +120,7 @@ def main(verb, resource, resourceid, attribute, value):
     return i_ret
 # end def main
 
-if __name__ == "__main__":
+def run():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "verb",
@@ -174,5 +174,9 @@ if __name__ == "__main__":
             i_out = i_ret
 
     exit(i_out)
+
+
+if __name__ == "__main__":
+    run()
 
 # [EOF]

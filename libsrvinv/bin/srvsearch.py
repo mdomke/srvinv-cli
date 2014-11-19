@@ -23,7 +23,7 @@ import libsrvinv
 import libsrvinv.bson_helper as json
 
 
-if __name__ == "__main__":
+def run():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "resource",
@@ -50,4 +50,7 @@ if __name__ == "__main__":
     else:
         print(json.dumps(x_result))
 
+
+if __name__ == "__main__":
+    run()
 # [EOF]

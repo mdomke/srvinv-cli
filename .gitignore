@@ -1,3 +1,9 @@
 *.pyc
 libsrvinv/config.py
 env/*
+
+build/
+dist/
+
+.ropeproject
+*.egg-info
